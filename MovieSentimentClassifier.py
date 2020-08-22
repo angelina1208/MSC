@@ -1,6 +1,8 @@
 import os
 import nltk
 
+from MSC_features import regex_countable_features, nltk_countable_features
+
 
 def ask_for_downloads():
 	print("Do you need to download stuff?")
@@ -20,4 +22,9 @@ if __name__ == '__main__':
 		with open(os.path.join(os.getcwd(), pos_folder,  filename), 'r') as f:
 			text = f.read()
 
-		print(f.read())
+		#print(text)
+		all_features = {}
+		all_features.update(regex_countable_features(text))
+		all_features.update(nltk_countable_features(text))
+
+		#print(all_features)
