@@ -1,5 +1,6 @@
 import os
 
+import pandas
 import nltk
 
 from MSC_features import regex_countable_features, nltk_countable_features
@@ -20,22 +21,34 @@ if __name__ == '__main__':
 	neg_folder = "aclImdb_v1/aclImdb/train/neg"
 	feature_store_file = "feats.csv"
 	print("Training with positive samples from: {}\nand negative samples from: {}".format(pos_folder, neg_folder))
+	if os.path.isfile(feature_store_file):
+		os.remove(feature_store_file)
+	has_headers = False
+	n = 0
 	for filename in os.listdir(pos_folder):
 		with open(os.path.join(os.getcwd(), pos_folder, filename), 'r') as f:
 			text = f.read()
 
-		# print(text)
 		all_features = {}
 		all_features.update(regex_countable_features(text))
 		all_features.update(nltk_countable_features(text))
-		line = filename + ","
 		keys_sorted = sorted(all_features.keys())
+		if not has_headers:
+			header_line = "document," + ",".join(keys_sorted) + "\n"
+			with open(feature_store_file, "a") as s:
+				s.write(header_line)
+			has_headers = True
+
+		line = filename + ","
 		for key in keys_sorted:
 			line = line + str(all_features[key]) + ","
 		line = line[0:-1] + "\n"
 		with open(feature_store_file, "a") as s:
 			s.write(line)
+		n+= 1
+		if n > 100:
+			break
+
+	x = pandas.read_csv(filepath_or_buffer=feature_store_file)
 
 
-
-# print(all_features)
