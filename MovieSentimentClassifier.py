@@ -45,10 +45,7 @@ if __name__ == '__main__':
 		line = line[0:-1] + "\n"
 		with open(feature_store_file, "a") as s:
 			s.write(line)
-		n+= 1
+		n += 1
 		if n > 100:
 			break
-
 	x = pandas.read_csv(filepath_or_buffer=feature_store_file)
-
-

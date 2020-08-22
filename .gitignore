@@ -2,3 +2,5 @@ aclImdb_v1
 aclImdb_v1.tar.gz
 venv
 .idea/
+__pycache__
+feats.csv
