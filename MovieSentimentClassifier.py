@@ -3,7 +3,7 @@ import os
 import nltk
 import pandas
 
-from MSC_features import regex_countable_features, nltk_countable_features
+from MSC_features import regex_countable_features, nltk_countable_features, FeatureExtractor
 
 
 def ask_for_downloads():
@@ -158,9 +158,10 @@ def TODO(data_features_neg, data_features_pos, data_features_summary):
 		f.write("\n")
 
 
-def for_all_files_in_list_extract_features_and_store_in_file(folder, feature_store_file, *, goldlabel=None,
+def for_all_files_in_list_extract_features_and_store_in_file(folder, feature_store_file, *, feature_extractor=FeatureExtractor(), goldlabel=None,
 															 start_new_csv=True):
-	all_features = feature_dict_for_text("")
+
+	all_features = feature_extractor.list_of_feature_names()
 	keys_sorted = sorted(all_features.keys())
 
 	if start_new_csv:
@@ -180,7 +181,7 @@ def for_all_files_in_list_extract_features_and_store_in_file(folder, feature_sto
 		with open(filename, 'r') as f:
 			text = f.read()
 
-		all_features = feature_dict_for_text(text)
+		all_features = feature_extractor.text_to_feature_dictionary(text)
 
 		if goldlabel:
 			all_features.update({"goldlabel": goldlabel})
@@ -199,12 +200,6 @@ def dict_and_filename_to_csv_line(all_features, filename):
 	line = line[0:-1] + "\n"
 	return line
 
-
-def feature_dict_for_text(text):
-	all_features = {}
-	all_features.update(regex_countable_features(text))
-	all_features.update(nltk_countable_features(text))
-	return all_features
 
 
 if __name__ == '__main__':

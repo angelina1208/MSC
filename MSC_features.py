@@ -4,6 +4,37 @@ import nltk
 from nltk.corpus import wordnet
 
 
+class FeatureExtractor:
+
+	def __init__(self) -> None:
+		self._feature_extraction_methods = [regex_countable_features, nltk_countable_features()]
+		self._list_of_feature_names = self.__list_of_feature_names()
+		super().__init__()
+
+	def __str__(self) -> str:
+		return super().__str__()
+
+	def __repr__(self) -> str:
+		return super().__repr__()
+
+	def text_to_feature_dictionary(self, text):
+		all_features = {}
+		for method in self._feature_extraction_methods:
+			all_features.update(method(text))
+		return all_features
+
+	def list_of_feature_names(self):
+		return self._list_of_feature_names
+
+	def __list_of_feature_names(self):
+		all_features = {}
+		for method in self._feature_extraction_methods:
+			all_features.update(method(""))
+		return sorted(all_features.keys())
+
+
+
+
 # https://stackoverflow.com/questions/15586721/wordnet-lemmatization-and-pos-tagging-in-python
 # Konvertiert POS-tags in wordnet tags
 def _get_wordnet_pos(treebank_tag):
