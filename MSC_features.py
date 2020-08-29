@@ -22,6 +22,7 @@ class FeatureExtractor:
 		all_features = {}
 		for method in self._feature_extraction_methods:
 			all_features.update(method(text))
+		all_features = _ratio_features(all_features)
 		return all_features
 
 	def list_file_to_feature_csv(self, *, list_file, csv_file, append=False, static_features={}):
@@ -166,14 +167,18 @@ def _nltk_countable_features(text):
 			result["num_adverbs"] = result["num_adverbs"] + 1
 
 	tokens = nltk.word_tokenize(text_no_specials_lower)
+	result["num_tokens"] = len(tokens)
 	types = nltk.Counter(tokens)
 
 	ttr = len(types) / len(tokens)
 	result["num_types"] = len(types)
-	result["ratio_type_token"] = ttr
 
 	hapaxes = FreqDist(nltk.Text(tokens)).hapaxes()
 	result["num_hapaxes"] = len(hapaxes)
-	result["ratio_hapax_legomena_token"] = len(hapaxes) / len(tokens)
 
 	return result
+
+def _ratio_features(feature_dict):
+	feature_dict["ratio_type_token"] = feature_dict["num_types"] / feature_dict["num_tokens"]
+	feature_dict["ratio_hapax_legomena_token"] = feature_dict["num_hapaxes"] / feature_dict["num_tokens"]
+	return feature_dict
