@@ -13,6 +13,7 @@ find aclImdb_v1/aclImdb/test/pos -mindepth 1 > lists/test_pos.txt
 # Install
 pip install -r requirements.txt
 python install.py
+pytest test_MSC.py
 
 #Run example
 python example.py
