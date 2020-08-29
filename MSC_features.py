@@ -92,7 +92,7 @@ def _wordnet_mapping(tuple):
 def _average_length_of_words_in_iterable(words):
 	num = 0.0
 	for word in words:
-		num += len(words)
+		num += len(word)
 	return num / len(words)
 
 
