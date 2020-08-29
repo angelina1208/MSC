@@ -3,14 +3,14 @@ import os
 import nltk
 import pandas
 
-from MSC_features import regex_countable_features, nltk_countable_features, FeatureExtractor
-
+from MSC_features import _regex_countable_features, _nltk_countable_features, FeatureExtractor
 
 def ask_for_downloads():
 	print("Do you need to download stuff?")
 	nltk.download('punkt')
 	nltk.download('averaged_perceptron_tagger')
 	nltk.download('wordnet')
+	nltk.download('stopwords')
 	print("You downloaded stuff.")
 
 
@@ -137,27 +137,6 @@ def train(data_features_neg, data_features_pos, data_features_summary, train_neg
 	TODO(data_features_neg, data_features_pos, data_features_summary)
 
 
-def TODO(data_features_neg, data_features_pos, data_features_summary):
-	negg = pandas.read_csv(data_features_neg)
-	poss = pandas.read_csv(data_features_pos)
-	sorted_keys = sorted(negg.keys())
-	negg_line = "neg"
-	poss_line = "pos"
-	header_line = "label"
-	for key in sorted_keys:
-		if pandas.api.types.is_numeric_dtype(negg[key]):
-			negg_line += "," + str(negg[key].mean())
-			poss_line += "," + str(poss[key].mean())
-			header_line += "," + key
-	with open(data_features_summary, "w") as f:
-		f.write(header_line)
-		f.write("\n")
-		f.write(negg_line)
-		f.write("\n")
-		f.write(poss_line)
-		f.write("\n")
-
-
 def for_all_files_in_list_extract_features_and_store_in_file(folder, feature_store_file, *, feature_extractor=FeatureExtractor(), goldlabel=None,
 															 start_new_csv=True):
 
@@ -190,15 +169,6 @@ def for_all_files_in_list_extract_features_and_store_in_file(folder, feature_sto
 
 		with open(feature_store_file, "a") as s:
 			s.write(line)
-
-
-def dict_and_filename_to_csv_line(all_features, filename):
-	keys_sorted = sorted(all_features.keys())
-	line = filename + ","
-	for key in keys_sorted:
-		line = line + str(all_features[key]) + ","
-	line = line[0:-1] + "\n"
-	return line
 
 
 
