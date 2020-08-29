@@ -9,7 +9,7 @@ def document_feature_csv_to_class_feature_csv(*, document_feature_csv_path, labe
 	df = pandas.read_csv(document_feature_csv_path)
 
 	all_labels = df[class_label_column_name].unique().tolist()
-	label_feature_averages_dict = label_averages_dict(all_labels, class_label_column_name, df)
+	label_feature_averages_dict = _label_averages_dict(all_labels, class_label_column_name, df)
 
 	with open(label_feature_csv_path, "w") as label_feature_csv:
 		a_label = list(label_feature_averages_dict.keys())[0]
@@ -22,7 +22,7 @@ def document_feature_csv_to_class_feature_csv(*, document_feature_csv_path, labe
 			label_feature_csv.write("\n" + line)
 
 
-def label_averages_dict(all_labels, class_label_column_name, df):
+def _label_averages_dict(all_labels, class_label_column_name, df):
 	numeric_features = _numeric_feature_keys_of_dataframe(df)
 	if class_label_column_name in numeric_features:
 		numeric_features.remove(class_label_column_name)

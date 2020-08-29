@@ -7,7 +7,7 @@ from nltk.probability import FreqDist
 
 class FeatureExtractor:
 
-	def __init__(self, static_features) -> None:
+	def __init__(self, static_features=[]) -> None:
 		self._feature_extraction_methods = [_regex_countable_features, _nltk_countable_features, _vader_features]
 		self._static_features = static_features
 		self._list_of_feature_names = self.__list_of_feature_names()
@@ -18,7 +18,7 @@ class FeatureExtractor:
 																				  self._static_features)
 
 	def __repr__(self) -> str:
-		return super().__repr__()
+		return str(self)
 
 	def features(self):
 		return self._list_of_feature_names
@@ -32,11 +32,7 @@ class FeatureExtractor:
 
 	def list_file_to_feature_csv(self, *, list_file, csv_file, append=False, static_features={}):
 		n = 0
-		for extepcted_static_feature in self._static_features:
-			if extepcted_static_feature not in static_features:
-				raise Exception(
-					"The static feature {} was defined at construction but is missing in static_features: {}".format(
-						extepcted_static_feature, static_features))
+		self.check_static_feature_and_raise_error_if_needed(static_features)
 		files = self.lines_of_file(list_file)
 		if not append:
 			with open(csv_file, "w") as csv:
@@ -52,6 +48,17 @@ class FeatureExtractor:
 				feature_dict.update(static_features)
 				line = self.dict_and_filename_to_csv_line(feature_dict, file)
 				csv.write(line + "\n")
+
+	def check_static_feature_and_raise_error_if_needed(self, static_features):
+		for expected_static_feature in self._static_features:
+			if expected_static_feature not in static_features:
+				raise Exception(
+					"The static feature {} was defined at construction but is missing in static_features: {}".format(
+						expected_static_feature, static_features))
+		for static_feature in static_features:
+			if static_feature not in self._static_features:
+				raise Exception(
+					"The static feature {} is not listed in static features {}".format(static_feature, static_features))
 
 	def dict_and_filename_to_csv_line(self, all_features, filename):
 		line = filename + ","
@@ -104,19 +111,19 @@ def _average_length_of_words_in_iterable(words):
 
 # zaehlt Anzahl an...
 def _regex_countable_features(text):
-	letter = re.compile("[a-zöäüA-ZÖÄÜ]")	#Buchstaben
-	letter_upper = re.compile("[A-ZÖÄÜ]")	#Grossbuchstaben
-	letter_lower = re.compile("[a-zöäü]")	#Kleinbuchstaben
-	digits = re.compile("[0-9]")			#Nummern
-	whitespace = re.compile(" ")			#Leerzeichen
-	special = re.compile("""[^\w]""")		#Sonderzeichen
-	comma = re.compile(",")					#Kommata
-	dot = re.compile("""\.""")				#Punkte
-	exclamation_mark = re.compile("!")		#Ausrufezeichen
-	question_mark = re.compile("""\?""")	#Fragezeichen
-	colon = re.compile(":")					#Doppelpunkte
-	semicolon = re.compile(";")				#Semicolon
-	hyphen = re.compile("-")				#Bindestrich
+	letter = re.compile("[a-zöäüA-ZÖÄÜ]")  # Buchstaben
+	letter_upper = re.compile("[A-ZÖÄÜ]")  # Grossbuchstaben
+	letter_lower = re.compile("[a-zöäü]")  # Kleinbuchstaben
+	digits = re.compile("[0-9]")  # Nummern
+	whitespace = re.compile(" ")  # Leerzeichen
+	special = re.compile(r"[^\w]")  # Sonderzeichen
+	comma = re.compile(",")  # Kommata
+	dot = re.compile(r"\.")  # Punkte
+	exclamation_mark = re.compile("!")  # Ausrufezeichen
+	question_mark = re.compile(r"\?")  # Fragezeichen
+	colon = re.compile(":")  # Doppelpunkte
+	semicolon = re.compile(";")  # Semicolon
+	hyphen = re.compile("-")  # Bindestrich
 
 	result = {
 		"num_char": len(text),
@@ -167,7 +174,7 @@ def _nltk_countable_features(text):
 	result["num_nouns"] = 0
 	result["num_verbs"] = 0
 	result["num_adverbs"] = 0
-	#zaehlt Anzahl an Adjektiven, Substantiven, Verben, Adverben
+	# zaehlt Anzahl an Adjektiven, Substantiven, Verben, Adverben
 	for tuple in wordnet_tagged_words:
 		if tuple[1] == wordnet.ADJ:
 			result["num_adjectives"] = result["num_adjectives"] + 1
@@ -178,7 +185,7 @@ def _nltk_countable_features(text):
 		elif tuple[1] == wordnet.ADV:
 			result["num_adverbs"] = result["num_adverbs"] + 1
 
-	#tokens = nltk.word_tokenize(text_no_specials_lower)
+	# tokens = nltk.word_tokenize(text_no_specials_lower)
 	result["num_tokens"] = len(words)
 	types = nltk.Counter(words)
 	result["num_types"] = len(types)
@@ -211,7 +218,7 @@ def _vader_features(text):
 def _ratio_features(feature_dict):
 	# Obviously machine generated stuff here....
 	ratio_dict = {}
-	
+
 	ratio_dict["ratio_type_token"] = 1 if feature_dict["num_tokens"] == 0 else \
 		feature_dict["num_types"] / feature_dict["num_tokens"]
 	ratio_dict["ratio_hapax_legomena_token"] = 1 if feature_dict["num_tokens"] == 0 else \
