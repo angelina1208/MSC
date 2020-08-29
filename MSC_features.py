@@ -9,13 +9,13 @@ class FeatureExtractor:
 
 	def __init__(self, static_features=[]) -> None:
 		self._feature_extraction_methods = [_regex_countable_features, _nltk_countable_features, _vader_features]
-		self._static_features = static_features
+		self._expected_static_features = static_features
 		self._list_of_feature_names = self.__list_of_feature_names()
 		super().__init__()
 
 	def __str__(self) -> str:
 		return "FeatureExtractor for features {} with static features {}.".format(self._list_of_feature_names,
-																				  self._static_features)
+																				  self._expected_static_features)
 
 	def __repr__(self) -> str:
 		return str(self)
@@ -32,7 +32,7 @@ class FeatureExtractor:
 
 	def list_file_to_feature_csv(self, *, list_file, csv_file, append=False, static_features={}):
 		n = 0
-		self.check_static_feature_and_raise_error_if_needed(static_features)
+		self.check_static_features_and_raise_error_if_needed(static_features)
 		files = self.lines_of_file(list_file)
 		if not append:
 			with open(csv_file, "w") as csv:
@@ -49,14 +49,14 @@ class FeatureExtractor:
 				line = self.dict_and_filename_to_csv_line(feature_dict, file)
 				csv.write(line + "\n")
 
-	def check_static_feature_and_raise_error_if_needed(self, static_features):
-		for expected_static_feature in self._static_features:
+	def check_static_features_and_raise_error_if_needed(self, static_features):
+		for expected_static_feature in self._expected_static_features:
 			if expected_static_feature not in static_features:
 				raise Exception(
 					"The static feature {} was defined at construction but is missing in static_features: {}".format(
 						expected_static_feature, static_features))
 		for static_feature in static_features:
-			if static_feature not in self._static_features:
+			if static_feature not in self._expected_static_features:
 				raise Exception(
 					"The static feature {} is not listed in static features {}".format(static_feature, static_features))
 
@@ -78,7 +78,7 @@ class FeatureExtractor:
 		all_features = self.text_to_feature_dictionary(
 			"Why don't you listen to https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 		feature_list = sorted(all_features.keys())
-		feature_list += sorted(self._static_features)
+		feature_list += sorted(self._expected_static_features)
 		return feature_list
 
 

@@ -1,28 +1,7 @@
 import pandas
 
 
-def document_feature_csv_to_class_feature_csv(*, document_feature_csv_path, label_feature_csv_path,
-											  class_label_column_name, only_numerical_features=True):
-	if not only_numerical_features:
-		raise NotImplementedError("Sorry, the given formula only allows for numerical features. ¯\_(ツ)_/¯")
-
-	df = pandas.read_csv(document_feature_csv_path)
-
-	all_labels = df[class_label_column_name].unique().tolist()
-	label_feature_averages_dict = _label_averages_dict(all_labels, class_label_column_name, df)
-
-	with open(label_feature_csv_path, "w") as label_feature_csv:
-		a_label = list(label_feature_averages_dict.keys())[0]
-		features = sorted(label_feature_averages_dict[a_label].keys())
-		label_feature_csv.write("label," + ",".join(features))
-		for label in all_labels:
-			line = label
-			for feature in features:
-				line += "," + str(label_feature_averages_dict[label][feature])
-			label_feature_csv.write("\n" + line)
-
-
-def _label_averages_dict(all_labels, class_label_column_name, df):
+def _label_averages_dict_from_dataframe(all_labels, class_label_column_name, df):
 	numeric_features = _numeric_feature_keys_of_dataframe(df)
 	if class_label_column_name in numeric_features:
 		numeric_features.remove(class_label_column_name)
@@ -36,12 +15,46 @@ def _label_averages_dict(all_labels, class_label_column_name, df):
 	return class_feature_averages_dict
 
 
+def read_confusion_matrix_from_prediction_csv(prediction_csv):
+	x = pandas.read_csv(prediction_csv)
+	labels = list(set(x["gold"].unique().tolist() + x["prediction"].unique().tolist()))
+	confusion_matrix = {}
+	for gold_label in labels:
+		confusion_matrix[gold_label] = {}
+		for predict_label in labels:
+			confusion_matrix[gold_label][predict_label] = 0
+	for index, row in x.iterrows():
+		confusion_matrix[row["gold"]][row["prediction"]] = confusion_matrix[row["gold"]][row["prediction"]] + 1
+	return confusion_matrix
+
+
 def _numeric_feature_keys_of_dataframe(df):
 	all_numeric_features = []
 	for key in df.keys():
 		if pandas.api.types.is_numeric_dtype(df[key]):
 			all_numeric_features.append(key)
 	return all_numeric_features
+
+
+def document_feature_csv_to_class_feature_csv(*, document_feature_csv_path, label_feature_csv_path,
+											  class_label_column_name, only_numerical_features=True):
+	if not only_numerical_features:
+		raise NotImplementedError("Sorry, the given formula only allows for numerical features. ¯\_(ツ)_/¯")
+
+	df = pandas.read_csv(document_feature_csv_path)
+
+	all_labels = df[class_label_column_name].unique().tolist()
+	label_feature_averages_dict = _label_averages_dict_from_dataframe(all_labels, class_label_column_name, df)
+
+	with open(label_feature_csv_path, "w") as label_feature_csv:
+		a_label = list(label_feature_averages_dict.keys())[0]
+		features = sorted(label_feature_averages_dict[a_label].keys())
+		label_feature_csv.write("label," + ",".join(features))
+		for label in all_labels:
+			line = label
+			for feature in features:
+				line += "," + str(label_feature_averages_dict[label][feature])
+			label_feature_csv.write("\n" + line)
 
 
 class Classifier:
@@ -73,8 +86,8 @@ class Classifier:
 			for filename in prediction_dictionaries.keys():
 				line = filename + "," + prediction_dictionaries[filename]["prediction"]
 				for copy_field in copy_fields:
-					line+= "," + prediction_dictionaries[filename][copy_field]
-				f.write("\n"+line)
+					line += "," + prediction_dictionaries[filename][copy_field]
+				f.write("\n" + line)
 
 	def classify_document(self, document):
 		distances = {}
@@ -131,17 +144,3 @@ class Classifier:
 	def _set_weights(self):
 		for feature in self._features:
 			self._weights[feature] = 1.0
-
-
-def read_confusion_matrix_from_prediction_csv(prediction_csv):
-	x = pandas.read_csv(prediction_csv)
-	labels = list(set(x["gold"].unique().tolist() + x["prediction"].unique().tolist()))
-	print(labels)
-	confusion_matrix = {}
-	for gold_label in labels:
-		confusion_matrix[gold_label] = {}
-		for predict_label in labels:
-			confusion_matrix[gold_label][predict_label] = 0
-	for index, row in x.iterrows():
-		confusion_matrix[row["gold"]][row["prediction"]] = confusion_matrix[row["gold"]][row["prediction"]] + 1
-	return confusion_matrix
