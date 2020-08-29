@@ -14,7 +14,8 @@ class FeatureExtractor:
 		super().__init__()
 
 	def __str__(self) -> str:
-		return super().__str__()
+		return "FeatureExtractor for features {} with static features {}.".format(self._list_of_feature_names,
+																				  self._static_features)
 
 	def __repr__(self) -> str:
 		return super().__repr__()
@@ -26,7 +27,7 @@ class FeatureExtractor:
 		all_features = {}
 		for method in self._feature_extraction_methods:
 			all_features.update(method(text))
-		all_features = _ratio_features(all_features)
+		all_features.update(_ratio_features(all_features))
 		return all_features
 
 	def list_file_to_feature_csv(self, *, list_file, csv_file, append=False, static_features={}):
@@ -101,20 +102,21 @@ def _average_length_of_words_in_iterable(words):
 	return num / len(words)
 
 
+# zaehlt Anzahl an...
 def _regex_countable_features(text):
-	letter = re.compile("[a-zöäüA-ZÖÄÜ]")
-	letter_upper = re.compile("[A-ZÖÄÜ]")
-	letter_lower = re.compile("[a-zöäü]")
-	digits = re.compile("[0-9]")
-	whitespace = re.compile(" ")
-	special = re.compile("""[^\w]""")
-	comma = re.compile(",")
-	dot = re.compile("""\.""")
-	exclamation_mark = re.compile("!")
-	question_mark = re.compile("""\?""")
-	colon = re.compile(":")
-	semicolon = re.compile(";")
-	hyphen = re.compile("-")
+	letter = re.compile("[a-zöäüA-ZÖÄÜ]")	#Buchstaben
+	letter_upper = re.compile("[A-ZÖÄÜ]")	#Grossbuchstaben
+	letter_lower = re.compile("[a-zöäü]")	#Kleinbuchstaben
+	digits = re.compile("[0-9]")			#Nummern
+	whitespace = re.compile(" ")			#Leerzeichen
+	special = re.compile("""[^\w]""")		#Sonderzeichen
+	comma = re.compile(",")					#Kommata
+	dot = re.compile("""\.""")				#Punkte
+	exclamation_mark = re.compile("!")		#Ausrufezeichen
+	question_mark = re.compile("""\?""")	#Fragezeichen
+	colon = re.compile(":")					#Doppelpunkte
+	semicolon = re.compile(";")				#Semicolon
+	hyphen = re.compile("-")				#Bindestrich
 
 	result = {
 		"num_char": len(text),
@@ -141,18 +143,23 @@ def _nltk_countable_features(text):
 
 	# entfernen aller special characters
 	text_no_specials = re.sub(r'[^\w]', ' ', text)
+	# in Kleinbuchstaben umwandeln
 	text_no_specials_lower = text_no_specials.lower()
+	# tokenisieren
 	words = nltk.word_tokenize(text_no_specials_lower)
+	# Menge aller Stoppwoerter im Englischen
 	en_stops = set(stopwords.words('english'))
 	result = {
 		"num_sentence": len(sentences),
 		"num_words": len(words),
 		"num_stopwords": 0
 	}
+	# zaehlt die Anzahl der vorkommenden Stoppwoerter
 	for word in words:
 		if word in en_stops:
 			result["num_stopwords"] += 1
 
+	# gibt den Woertern die zugehoerigen POS
 	tagged_words = nltk.pos_tag(words)
 	wordnet_tagged_words = map(_wordnet_mapping, tagged_words)
 
@@ -160,6 +167,7 @@ def _nltk_countable_features(text):
 	result["num_nouns"] = 0
 	result["num_verbs"] = 0
 	result["num_adverbs"] = 0
+	#zaehlt Anzahl an Adjektiven, Substantiven, Verben, Adverben
 	for tuple in wordnet_tagged_words:
 		if tuple[1] == wordnet.ADJ:
 			result["num_adjectives"] = result["num_adjectives"] + 1
@@ -170,12 +178,12 @@ def _nltk_countable_features(text):
 		elif tuple[1] == wordnet.ADV:
 			result["num_adverbs"] = result["num_adverbs"] + 1
 
-	tokens = nltk.word_tokenize(text_no_specials_lower)
-	result["num_tokens"] = len(tokens)
-	types = nltk.Counter(tokens)
+	#tokens = nltk.word_tokenize(text_no_specials_lower)
+	result["num_tokens"] = len(words)
+	types = nltk.Counter(words)
 	result["num_types"] = len(types)
 
-	hapaxes = FreqDist(nltk.Text(tokens)).hapaxes()
+	hapaxes = FreqDist(nltk.Text(words)).hapaxes()
 	result["num_hapaxes"] = len(hapaxes)
 
 	return result
@@ -202,91 +210,82 @@ def _vader_features(text):
 
 def _ratio_features(feature_dict):
 	# Obviously machine generated stuff here....
+	ratio_dict = {}
+	
+	ratio_dict["ratio_type_token"] = 1 if feature_dict["num_tokens"] == 0 else \
+		feature_dict["num_types"] / feature_dict["num_tokens"]
+	ratio_dict["ratio_hapax_legomena_token"] = 1 if feature_dict["num_tokens"] == 0 else \
+		feature_dict["num_hapaxes"] / feature_dict["num_tokens"]
+	ratio_dict["ratio_char_dot"] = 1 if feature_dict["num_char"] == 0 else \
+		feature_dict["num_dot"] / feature_dict["num_char"]
+	ratio_dict["ratio_char_comma"] = 1 if feature_dict["num_char"] == 0 else \
+		feature_dict["num_comma"] / feature_dict["num_char"]
+	ratio_dict["ratio_char_semicolon"] = 1 if feature_dict["num_char"] == 0 else \
+		feature_dict["num_semicolon"] / feature_dict["num_char"]
+	ratio_dict["ratio_char_colon"] = 1 if feature_dict["num_char"] == 0 else \
+		feature_dict["num_colon"] / feature_dict["num_char"]
+	ratio_dict["ratio_char_exclamation"] = 1 if feature_dict["num_char"] == 0 else \
+		feature_dict["num_exclamationmark"] / feature_dict["num_char"]
+	ratio_dict["ratio_char_questionmark"] = 1 if feature_dict["num_char"] == 0 else \
+		feature_dict["num_questionmark"] / feature_dict["num_char"]
+	ratio_dict["ratio_char_hyphen"] = 1 if feature_dict["num_char"] == 0 else \
+		feature_dict["num_hyphen"] / feature_dict["num_char"]
+	ratio_dict["ratio_dot_comma"] = 1 if feature_dict["num_dot"] == 0 else \
+		feature_dict["num_comma"] / feature_dict["num_dot"]
+	ratio_dict["ratio_dot_questionmark"] = 1 if feature_dict["num_dot"] == 0 else \
+		feature_dict["num_questionmark"] / feature_dict["num_dot"]
+	ratio_dict["ratio_dot_exclamation"] = 1 if feature_dict["num_dot"] == 0 else \
+		feature_dict["num_exclamationmark"] / feature_dict["num_dot"]
+	ratio_dict["ratio_char_digits"] = 1 if feature_dict["num_char"] == 0 else \
+		feature_dict["num_digits"] / feature_dict["num_char"]
+	ratio_dict["ratio_char_special"] = 1 if feature_dict["num_char"] == 0 else \
+		feature_dict["num_special"] / feature_dict["num_char"]
+	ratio_dict["ratio_char_whitespace"] = 1 if feature_dict["num_char"] == 0 else \
+		feature_dict["num_whitespace"] / feature_dict["num_char"]
+	ratio_dict["ratio_letter_upper"] = 1 if feature_dict["num_char"] == 0 else \
+		feature_dict["num_letter_upper"] / feature_dict["num_char"]
+	ratio_dict["ratio_letter_lower"] = 1 if feature_dict["num_char"] == 0 else \
+		feature_dict["num_letter_lower"] / feature_dict["num_char"]
 
-	feature_dict["ratio_type_token"] = 1 if feature_dict["num_tokens"] == 0 else feature_dict["num_types"] / \
-																				 feature_dict["num_tokens"]
-	feature_dict["ratio_hapax_legomena_token"] = 1 if feature_dict["num_tokens"] == 0 else feature_dict["num_hapaxes"] / \
-																						   feature_dict["num_tokens"]
-	feature_dict["ratio_char_dot"] = 1 if feature_dict["num_char"] == 0 else feature_dict["num_dot"] / feature_dict[
-		"num_char"]
-	feature_dict["ratio_char_comma"] = 1 if feature_dict["num_char"] == 0 else feature_dict["num_comma"] / feature_dict[
-		"num_char"]
-	feature_dict["ratio_char_semicolon"] = 1 if feature_dict["num_char"] == 0 else feature_dict["num_semicolon"] / \
-																				   feature_dict["num_char"]
-	feature_dict["ratio_char_colon"] = 1 if feature_dict["num_char"] == 0 else feature_dict["num_colon"] / feature_dict[
-		"num_char"]
-	feature_dict["ratio_char_exclamation"] = 1 if feature_dict["num_char"] == 0 else feature_dict[
-																						 "num_exclamationmark"] / \
-																					 feature_dict["num_char"]
-	feature_dict["ratio_char_questionmark"] = 1 if feature_dict["num_char"] == 0 else feature_dict["num_questionmark"] / \
-																					  feature_dict["num_char"]
-	feature_dict["ratio_char_hyphen"] = 1 if feature_dict["num_char"] == 0 else feature_dict["num_hyphen"] / \
-																				feature_dict["num_char"]
-	feature_dict["ratio_dot_comma"] = 1 if feature_dict["num_dot"] == 0 else feature_dict["num_comma"] / feature_dict[
-		"num_dot"]
-	feature_dict["ratio_dot_questionmark"] = 1 if feature_dict["num_dot"] == 0 else feature_dict["num_questionmark"] / \
-																					feature_dict["num_dot"]
-	feature_dict["ratio_dot_exclamation"] = 1 if feature_dict["num_dot"] == 0 else feature_dict["num_exclamationmark"] / \
-																				   feature_dict["num_dot"]
-	feature_dict["ratio_char_digits"] = 1 if feature_dict["num_char"] == 0 else feature_dict["num_digits"] / \
-																				feature_dict["num_char"]
-	feature_dict["ratio_char_special"] = 1 if feature_dict["num_char"] == 0 else feature_dict["num_special"] / \
-																				 feature_dict["num_char"]
-	feature_dict["ratio_char_whitespace"] = 1 if feature_dict["num_char"] == 0 else feature_dict["num_whitespace"] / \
-																					feature_dict["num_char"]
-	feature_dict["ratio_letter_upper"] = 1 if feature_dict["num_char"] == 0 else feature_dict["num_letter_upper"] / \
-																				 feature_dict["num_char"]
-	feature_dict["ratio_letter_lower"] = 1 if feature_dict["num_char"] == 0 else feature_dict["num_letter_lower"] / \
-																				 feature_dict["num_char"]
+	ratio_dict["ratio_sentences_dot"] = 1 if feature_dict["num_sentence"] == 0 else \
+		feature_dict["num_dot"] / feature_dict["num_sentence"]
+	ratio_dict["ratio_sentences_comma"] = 1 if feature_dict["num_sentence"] == 0 else \
+		feature_dict["num_comma"] / feature_dict["num_sentence"]
+	ratio_dict["ratio_sentences_digits"] = 1 if feature_dict["num_sentence"] == 0 else \
+		feature_dict["num_digits"] / feature_dict["num_sentence"]
+	ratio_dict["ratio_sentences_semicolon"] = 1 if feature_dict["num_sentence"] == 0 else \
+		feature_dict["num_semicolon"] / feature_dict["num_sentence"]
+	ratio_dict["ratio_sentences_questionmark"] = 1 if feature_dict["num_sentence"] == 0 else \
+		feature_dict["num_questionmark"] / feature_dict["num_sentence"]
+	ratio_dict["ratio_sentences_exclamation"] = 1 if feature_dict["num_sentence"] == 0 else \
+		feature_dict["num_exclamationmark"] / feature_dict["num_sentence"]
+	ratio_dict["ratio_sentences_hyphen"] = 1 if feature_dict["num_sentence"] == 0 else \
+		feature_dict["num_hyphen"] / feature_dict["num_sentence"]
+	ratio_dict["ratio_sentences_colon"] = 1 if feature_dict["num_sentence"] == 0 else \
+		feature_dict["num_colon"] / feature_dict["num_sentence"]
+	ratio_dict["ratio_sentences_char"] = 1 if feature_dict["num_sentence"] == 0 else \
+		feature_dict["num_char"] / feature_dict["num_sentence"]
+	ratio_dict["ratio_sentences_letter"] = 1 if feature_dict["num_sentence"] == 0 else \
+		feature_dict["num_letter"] / feature_dict["num_sentence"]
+	ratio_dict["ratio_sentences_letter_upper"] = 1 if feature_dict["num_sentence"] == 0 else \
+		feature_dict["num_letter_upper"] / feature_dict["num_sentence"]
+	ratio_dict["ratio_sentences_letter_lower"] = 1 if feature_dict["num_sentence"] == 0 else \
+		feature_dict["num_letter_lower"] / feature_dict["num_sentence"]
+	ratio_dict["ratio_sentences_special"] = 1 if feature_dict["num_sentence"] == 0 else \
+		feature_dict["num_special"] / feature_dict["num_sentence"]
+	ratio_dict["ratio_sentences_words"] = 1 if feature_dict["num_sentence"] == 0 else \
+		feature_dict["num_words"] / feature_dict["num_sentence"]
 
-	feature_dict["ratio_sentences_dot"] = 1 if feature_dict["num_sentence"] == 0 else feature_dict["num_dot"] / \
-																					  feature_dict["num_sentence"]
-	feature_dict["ratio_sentences_comma"] = 1 if feature_dict["num_sentence"] == 0 else feature_dict["num_comma"] / \
-																						feature_dict["num_sentence"]
-	feature_dict["ratio_sentences_digits"] = 1 if feature_dict["num_sentence"] == 0 else feature_dict["num_digits"] / \
-																						 feature_dict["num_sentence"]
-	feature_dict["ratio_sentences_semicolon"] = 1 if feature_dict["num_sentence"] == 0 else feature_dict[
-																								"num_semicolon"] / \
-																							feature_dict["num_sentence"]
-	feature_dict["ratio_sentences_questionmark"] = 1 if feature_dict["num_sentence"] == 0 else feature_dict[
-																								   "num_questionmark"] / \
-																							   feature_dict[
-																								   "num_sentence"]
-	feature_dict["ratio_sentences_exclamation"] = 1 if feature_dict["num_sentence"] == 0 else feature_dict[
-																								  "num_exclamationmark"] / \
-																							  feature_dict[
-																								  "num_sentence"]
-	feature_dict["ratio_sentences_hyphen"] = 1 if feature_dict["num_sentence"] == 0 else feature_dict["num_hyphen"] / \
-																						 feature_dict["num_sentence"]
-	feature_dict["ratio_sentences_colon"] = 1 if feature_dict["num_sentence"] == 0 else feature_dict["num_colon"] / \
-																						feature_dict["num_sentence"]
-	feature_dict["ratio_sentences_char"] = 1 if feature_dict["num_sentence"] == 0 else feature_dict["num_char"] / \
-																					   feature_dict["num_sentence"]
-	feature_dict["ratio_sentences_letter"] = 1 if feature_dict["num_sentence"] == 0 else feature_dict["num_letter"] / \
-																						 feature_dict["num_sentence"]
-	feature_dict["ratio_sentences_letter_upper"] = 1 if feature_dict["num_sentence"] == 0 else feature_dict[
-																								   "num_letter_upper"] / \
-																							   feature_dict[
-																								   "num_sentence"]
-	feature_dict["ratio_sentences_letter_lower"] = 1 if feature_dict["num_sentence"] == 0 else feature_dict[
-																								   "num_letter_lower"] / \
-																							   feature_dict[
-																								   "num_sentence"]
-	feature_dict["ratio_sentences_special"] = 1 if feature_dict["num_sentence"] == 0 else feature_dict["num_special"] / \
-																						  feature_dict["num_sentence"]
-	feature_dict["ratio_sentences_words"] = 1 if feature_dict["num_sentence"] == 0 else feature_dict["num_words"] / \
-																						feature_dict["num_sentence"]
-
-	feature_dict["ratio_words_stopwords"] = 1 if feature_dict["num_words"] == 0 else feature_dict["num_stopwords"] / \
-																					 feature_dict["num_words"]
-	feature_dict["ratio_words_adjectives"] = 1 if feature_dict["num_words"] == 0 else feature_dict["num_adjectives"] / \
-																					  feature_dict["num_words"]
-	feature_dict["ratio_words_verbs"] = 1 if feature_dict["num_words"] == 0 else feature_dict["num_verbs"] / \
-																				 feature_dict["num_words"]
-	feature_dict["ratio_words_adverbs"] = 1 if feature_dict["num_words"] == 0 else feature_dict["num_adverbs"] / \
-																				   feature_dict["num_words"]
-	feature_dict["ratio_words_nouns"] = 1 if feature_dict["num_words"] == 0 else feature_dict["num_nouns"] / \
-																				 feature_dict["num_words"]
-	feature_dict["ratio_words_chars"] = 1 if feature_dict["num_words"] == 0 else feature_dict["num_char"] / \
-																				 feature_dict["num_words"]
-	return feature_dict
+	ratio_dict["ratio_words_stopwords"] = 1 if feature_dict["num_words"] == 0 else \
+		feature_dict["num_stopwords"] / feature_dict["num_words"]
+	ratio_dict["ratio_words_adjectives"] = 1 if feature_dict["num_words"] == 0 else \
+		feature_dict["num_adjectives"] / feature_dict["num_words"]
+	ratio_dict["ratio_words_verbs"] = 1 if feature_dict["num_words"] == 0 else \
+		feature_dict["num_verbs"] / feature_dict["num_words"]
+	ratio_dict["ratio_words_adverbs"] = 1 if feature_dict["num_words"] == 0 else \
+		feature_dict["num_adverbs"] / feature_dict["num_words"]
+	ratio_dict["ratio_words_nouns"] = 1 if feature_dict["num_words"] == 0 else \
+		feature_dict["num_nouns"] / feature_dict["num_words"]
+	ratio_dict["ratio_words_chars"] = 1 if feature_dict["num_words"] == 0 else \
+		feature_dict["num_char"] / feature_dict["num_words"]
+	return ratio_dict
