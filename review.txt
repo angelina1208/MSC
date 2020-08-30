@@ -1,0 +1,57 @@
+Review zum Projekt MSC
+
+zu MSC_Classifier.py:
+    - Funktionen über der Klassendefinition vielleicht besser in eine eigene
+      Datei/Klasse
+    - zu classify_document():
+       predicted_labels enthält ja dann alle label, die die kleinste Distanz
+       haben; erstmal gut, dass du bedacht hast, dass das mehrere label sein können;
+       aber mir ist nicht ganz klar, warum die Liste predicted_labels erstellt
+       wird, wenn dann nur ein Element zurückgegeben wird (dann könnte man
+       ja auch direkt nur dieses Element zurückgeben)
+    - eher eine Kleinigkeit: Ich finde gut, dass du die Gewichte berücksichtigt
+      hast und dass es die Funktion _set_weights() gibt; vielleicht könnte man
+      noch eine Funktion hinzufügen, die die Möglichkeit bietet, für ein
+      einzelnes feature das Gewicht zu ändern
+    - etwas mehr kommentieren: Ich finde gut, dass du aussagekräftige
+      Funktionsnamen gewählt hast und dass die Funktionen meist eher kurz sind
+      (sodass man vielleicht gar nicht so viele Kommentare braucht). Aber
+      an einigen Stellen hätten mir Kommentare durchaus weitergeholfen.
+
+
+zu MSC_features.py:
+    - _get_wordnet_pos() und alle Funktionen darunter vielleicht lieber 
+      in eine eigene Datei
+    - generell etwas mehr kommentieren: die Funktionsnamen sind ja in vielen
+      Fällen selbsterklärend, aber mir persönlich hätten an einigen Stellen
+      Kommentare geholfen, den Code zu verstehen
+    - zu _ratio_features():
+        - Füllen von ratio_dict[] vielleicht eher in eine Funktion auslagern,
+          die die keys von feature_dict[] als Argumente nimmt
+
+
+zu example.py:
+    - sehr informative Outputs, Negatives ist mir hier nicht aufgefallen
+    
+zu test_MSC.py:
+    - eventuell pytest mit in requirements.txt angeben
+    - gibt beim Aufruf (Ubuntu 18.04 als WSL) nichts aus, weil der main-Part fehlt
+    
+Gesamteindruck:
+Ich finde, du hast das Projekt sinnvoll in Klassen und Funktionen aufgeteilt.
+Ich finde gut, dass die Funktionen jeweils nur eine kleine Teilaufgabe erfüllen und 
+die "höheren" Funktionen viel an die "tieferen" delegieren.
+Die Funktionen sind sehr kompakt, weil du viele list comprehensions und 
+andere Kniffe verwendest, die den Code verkürzen. Einerseits ist kurzer
+bzw. kompakter Code natürlich positiv, andererseits leidet manchmal etwas die 
+Lesbarkeit darunter. An vielen Stellen würden mehr Kommentare helfen.
+Das README.md war zum Zeitpunkt des Reviews noch nicht fertig, deswegen
+kann ich dazu nichts sagen und das Programm auch nicht richtig ausprobieren
+(außer den Unittest).
+Was man eventuell noch hinzufügen könnte ist eine Anleitung, wie man an die
+(nicht vorverarbeiteten) Daten kommt und wie man sie vorverarbeitet:
+Der Ordner lists enthält ja schon die (manuell oder automatisch?) getrennten
+Daten, wenn ich das richtig verstehe. Vielleicht wäre es besser, die Daten 
+nicht hochzuladen, sondern nur einen Link zu den Daten und ein Programm 
+(oder eine Anleitung) für das Trennen.
+    
