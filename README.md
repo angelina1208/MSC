@@ -20,7 +20,7 @@ find aclImdb/test/pos -mindepth 1 > lists/test_pos.txt
 # Install
 pip install -r requirements.txt
 python src/MSC_install.py
-pytest test/test_MSC.py
+pytest test_MSC.py
 
 #Run example
 mkdir -p data
