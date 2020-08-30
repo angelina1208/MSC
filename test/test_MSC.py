@@ -61,7 +61,7 @@ So, in our example, a test case would have the features f t,1 and f t,2 . We can
 check how different this test case is from each known author, by computing its
 feature distance from the features of each of the three au"""
 
-from MSC_features import FeatureExtractor, _ratio_features, _vader_features, _regex_countable_features, \
+from src.MSC_features import FeatureExtractor, _ratio_features, _vader_features, _regex_countable_features, \
 	_nltk_countable_features
 
 

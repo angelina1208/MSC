@@ -1,6 +1,9 @@
-aclImdb_v1
+aclImdb_v1/
 aclImdb_v1.tar.gz
-venv
+venv/
 .idea/
 __pycache__
 *.csv
+lists/
+aclImdb/
+data/
