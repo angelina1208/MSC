@@ -177,7 +177,7 @@ def _regex_countable_features(text):
 	whitespace = re.compile(" ")  			# Leerzeichen
 	special = re.compile(r"[^\w]")  		# Sonderzeichen
 	comma = re.compile(",")  				# Kommata
-	dot = re.compile(r"..")  				# Punkte
+	dot = re.compile(r"\.")  				# Punkte
 	exclamation_mark = re.compile("!")  	# Ausrufezeichen
 	question_mark = re.compile(r"\?")  		# Fragezeichen
 	colon = re.compile(":")  				# Doppelpunkte
