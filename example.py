@@ -15,7 +15,9 @@ from os.path import isdir
 def main():
 	# wenn ueber die Features hinaus, die im Code festgelegt sind, welche extrahiert werden sollen, 
 	# noch weitere features gebraucht werden, dann muessen diese dem Konstruktor gegeben werden
-	# standardmaessig nur gold, fuer den Goldstandard
+	# standardmaessig nur gold, fuer den Goldstandard, dieser ist ja in der Ordnerstruktur des Datensatzes zu finden
+	# ob es sich um pos o. neg Daten handelt wird den jeweiligen Funktionen uebergeben, damit der Goldstandard
+	# auch abgespeichert werden kann
 	fe = FeatureExtractor(static_features=["gold"])
 
 	# Erstellt das data directory falls noetig
@@ -25,10 +27,11 @@ def main():
 
 	# TRAINING:
 	# extrahieren aller Features aus den positiven Trainingsdaten und speichert diese in data/train.csv
-	# list_file
-	# csv_file
-	# append
-	# statict_features
+	# list_file: Dateipfad, in denen sich Daten befinden, aus denen Features extrahiert werden sollen
+	# csv_file: Datei, in der Ergebnisse der Feature Extraktion gespeichert werden
+	# append: faslse, wenn neue CSV erstellt werden soll, true, wenn CSV bereits existiert und nur noch
+	#			in die bereits vorhandene geschrieben werden soll
+	# statict_features: Wert für den Goldstandard, ob es sich um pos o. neg daten handelt
 	fe.list_file_to_feature_csv(list_file="lists/train_pos.txt", csv_file="data/train.csv", append=False,
 								static_features={"gold": "pos"})
 	# extrahieren aller Features aus den negativen Trainingsdaten und speichert diese in data/train.csv

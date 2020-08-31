@@ -3,7 +3,7 @@ Angelina-Sophia Hauswald
 ## **Movie Sentiment Classifier**
 ---
 ### Installation
-Linux, python3.8
+Für Linux, python3.8
 ##### Virtual Enviroment einrichten
 
 ```bash
@@ -15,8 +15,10 @@ python src/MSC_install.py
 ```
 
 ##### Benötigten Datensatz herunterladen
+```bash
 wget http://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz
 tar -xzf aclImdb_v1.tar.gz
+```
 
 ---
 ### Benutzung
@@ -32,20 +34,13 @@ find aclImdb/test/neg -mindepth 1 > lists/test_neg.txt
 find aclImdb/test/pos -mindepth 1 > lists/test_pos.txt
 ```
 
-Erklärungen zur Benutzung und wie das Programm arbeitet befindet sich in der example.py:
+Erklärungen zur Benutzung, Beispielaufrufe und Arbeitsweise befinden sich in der example.py:
 ```bash
 mkdir -p data
 python example.py
 ```
 
-
-# Install
-pip install -r requirements.txt
-python src/MSC_install.py
-pytest test_MSC.py
-
-#Run example
-mkdir -p data
+Unit-Tests:
+```bash
 python example.py
-
 ```
