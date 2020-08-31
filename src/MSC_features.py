@@ -70,15 +70,12 @@ class FeatureExtractor:
 			with open(csv_file, "w") as csv:
 				csv.write("filename,")
 				csv.write(",".join(self._list_of_feature_names) + "\n")
-		# Schreibt, wie viele Dateien zu bearbeiten sind
-		print("Extracting... found {} entries in {}".format(len(files), list_file))
 		with open(csv_file, "a") as csv:
 			for file in files:
 				with open(file, "r") as text_file:
 					# gibt waehrend der Bearbeitung an bei der wievielten Datei sich das Programm befindet
+					print("{}th file {}".format(n, file))
 					n += 1
-					if n % 100 == 0:
-						print("{}th file {}".format(n, file))
 					# Datei lesen
 					text = text_file.read()
 				# aus dem Text alle Features ziehen

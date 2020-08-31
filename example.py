@@ -1,11 +1,11 @@
 # example.py
-# demonstriert den Movie Sentiment Classifier
+# demonstriert die Benutzung und Arbeitsweise des Movie Sentiment Classifier
 #
 # Angelina-Sophia Hauswald
 # Matrikel-Nr.: 785803
 # OS: Ubuntu 20.04 LTS 
-# Python 3.8.2 (default, Apr 27 2020, 15:53:34)
-# [GCC 9.3.0] on linux
+# Python 3.8.2 
+
 
 from src.MSC_classifier import Classifier, read_confusion_matrix_from_prediction_csv, document_feature_csv_to_class_feature_csv
 from src.MSC_features import FeatureExtractor
@@ -13,6 +13,9 @@ from os import mkdir
 from os.path import isdir
 
 def main():
+	# wenn ueber die Features hinaus, die im Code festgelegt sind, welche extrahiert werden sollen, 
+	# noch weitere features gebraucht werden, dann muessen diese dem Konstruktor gegeben werden
+	# standardmaessig nur gold, fuer den Goldstandard
 	fe = FeatureExtractor(static_features=["gold"])
 
 	# Erstellt das data directory falls noetig
@@ -20,50 +23,66 @@ def main():
 	if not isdir("data"):
 		mkdir("data")
 
-	# TRAIN
-	# Train files to one data/train.csv
-	# extrahieren aller Features aus den positiven Trainingsdaten
+	# TRAINING:
+	# extrahieren aller Features aus den positiven Trainingsdaten und speichert diese in data/train.csv
+	# list_file
+	# csv_file
+	# append
+	# statict_features
 	fe.list_file_to_feature_csv(list_file="lists/train_pos.txt", csv_file="data/train.csv", append=False,
 								static_features={"gold": "pos"})
-	# extrahieren aller Features aus den negativen Trainingsdaten
+	# extrahieren aller Features aus den negativen Trainingsdaten und speichert diese in data/train.csv
 	fe.list_file_to_feature_csv(list_file="lists/train_neg.txt", csv_file="data/train.csv", append=True,
 								static_features={"gold": "neg"})
 	
-	# average data/train.csv
+	# schreibt in eine CSV-Datei für alle Klassen, die bekannt sind (in dem Fall pos, neg), die durchschnittlichen
+	# Werte, der gezaehlten Features
+	# document_feature_csv_path:	Dateipfad, der CSV, in der die Features zu den Trainingsdaten enthalten sind
+	# label_feature_csv_path:		Dateiname, der CSV, in der die durchschnittlichen Werte der Features eingeschrieben
+	#								werden sollen
+	# class_label_column_name:      standardmaessig auf "gold", für den Goldstandard		
 	document_feature_csv_to_class_feature_csv(document_feature_csv_path="data/train.csv", class_label_column_name="gold",
 											  label_feature_csv_path="data/averages.csv")
 	
-	# VALIDATE
+	# VALIDIERUNG:
 	# data to classify to csv
+	# extrahieren aller Features aus den positiven und negative Trainingsdaten und speichern in data/train.csv
 	fe.list_file_to_feature_csv(list_file="lists/validation_neg.txt", csv_file="data/validation.csv", append=False,
 								static_features={"gold": "neg"})
 	fe.list_file_to_feature_csv(list_file="lists/validation_pos.txt", csv_file="data/validation.csv", append=True,
 								static_features={"gold": "pos"})
 	
-	#read the classifier from csv
-	# erstellen eines Obejkts
+	
+	# Einlesen des Klassifizierers von der CSV-Datei
+	# Erstellen eines Objekts
 	c = Classifier("data/averages.csv", only_use_features=["vader_compound", "ratio_char_questionmark"])
-	#create new predicitons csv
+	# erstellen einer neuen prediction-csv, in der zu jeder Datei die prediction und der erwartete Goldstandard steht
+	# documents_csv_file:	Datei, die die Dateinamen und alle zugehoerigen berechneten Features enthaelt
+	# target_csv_file: 		Dateiname der CSV, die erstellt wird
 	c.classify_documents_in_file_and_save_to_csv(documents_csv_file="data/validation.csv", target_csv_file="data/validation_prediction.csv")
 	
-	# check how good predtions are
+	# Uberpruefen wie gut predictions sind 
 	confusion_matrix = read_confusion_matrix_from_prediction_csv("data/validation_prediction.csv")
+	# Ergebnisse praesentieren
 	print_confusion_matrix_with_all_stats(confusion_matrix)
 	
 	
-	# TEST
+	# TESTEN:
+	# Features extrahieren
 	fe.list_file_to_feature_csv(list_file="lists/test_neg.txt", csv_file="data/test.csv", append=False,
 								static_features={"gold": "neg"})
 	fe.list_file_to_feature_csv(list_file="lists/test_pos.txt", csv_file="data/test.csv", append=True,
 							static_features={"gold": "pos"})
-	
+
+	# Dokumente klassifizieren
 	c.classify_documents_in_file_and_save_to_csv(documents_csv_file="data/test.csv", target_csv_file="data/test_prediction.csv")
 
+	# Ueberpruefen, wie gut predictions sind
 	confusion_matrix = read_confusion_matrix_from_prediction_csv("data/test_prediction.csv")
+	# Ergebnisse praesentieren
 	print_confusion_matrix_with_all_stats(confusion_matrix)
 
-# Die funktion schreibt die confusion matrix und ausserdem
-# die fehlerrrate und erkennungsrate
+# gibt die Confusion-Matrix und die Fehlerrrate und Erkennungsrate aus
 def print_confusion_matrix_with_all_stats(confusion_matrix):
 	print(confusion_matrix)
 	num_all = 0
@@ -81,9 +100,3 @@ def print_confusion_matrix_with_all_stats(confusion_matrix):
 
 if __name__ == '__main__':
 	main()
-
-
-
-#wenn ueber die features die er errechnet noch weitere features braucht,
-	#dann muss das beim konstruktor angegeben werden
-	#es gibt noch ne zeile gold ['gold']

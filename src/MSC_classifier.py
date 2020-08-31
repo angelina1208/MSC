@@ -109,7 +109,7 @@ class Classifier:
 		self._weights = {}
 		# Dateiname
 		self._csv_file = csv_file
-		self.__load_from_csv(label_column_name, exclude_features=exclude_features, only_use_features=only_use_features)
+		self._load_from_csv(label_column_name, exclude_features=exclude_features, only_use_features=only_use_features)
 		self.__set_weights()
 		super().__init__()
 
@@ -153,7 +153,7 @@ class Classifier:
 		# für jedes Label Distanz berechnen
 		for label in self._labels:
 			label_dict = self._labels_feature_dict[label]
-			distances[label] = self.__distance_between_documents(document, label_dict)
+			distances[label] = self._distance_between_documents(document, label_dict)
 		# Liste mit allen minimalsten Distanzen (koennten auch mehrere sein, die minimalsten Abstand haben)
 		min_value = min(distances.values())
 		# wenn mehrere Label den minimalsten Abstand haben, wird einfach das erste Element dieser Liste ausgegeben
@@ -161,7 +161,7 @@ class Classifier:
 		return predicted_labels[0]
 
 	# return: Distanz 
-	def __distance_between_documents(self, doc_a, doc_b):
+	def _distance_between_documents(self, doc_a, doc_b):
 		distance = 0
 		# durch alle Features durchgehen, die uns interessieren
 		for feature in self._features:
@@ -188,13 +188,13 @@ class Classifier:
 	# label_column_name: 	Name des Klassenlabels (in dem Fall standardmaessig "Label")
 	# exclude_features:		Features, die nicht verwendet werden sollen
 	# only_use_features:	nur die Features, die verwendet werden sollen
-	def __load_from_csv(self, label_column_name, *, exclude_features=None, only_use_features=None):
+	def _load_from_csv(self, label_column_name, *, exclude_features=None, only_use_features=None):
 		# liest averages CSV ein (die die beiden label repraesentieren)
 		df = pandas.read_csv(self._csv_file)
 		# Liste aller Features, die extrahiert wurden
-		self._features = self.__collect_wanted_features_from_dataframe(df=df, label_column_name=label_column_name,
-																	   exclude_features=exclude_features,
-																	   only_use_features=only_use_features)
+		self._features = self._collect_wanted_features_from_dataframe(df=df, label_column_name=label_column_name,
+																	  exclude_features=exclude_features,
+																	  only_use_features=only_use_features)
 		# Liste aller Labels, die der Klassifier kennt (in dem Fall nur pos, neg)
 		self._labels = list(df[label_column_name].unique())
 		# Dataframe nicht mit einer Zeilennummer, sondern mit Namen des Labels adressieren
@@ -213,7 +213,7 @@ class Classifier:
 	# exclude_features:		Features, die nicht verwendet werden sollen
 	# only_use_features:	nur die Features, die verwendet werden sollen
 	# return: Liste von Namen der Features, die uns interessieren
-	def __collect_wanted_features_from_dataframe(self, *, df, label_column_name, exclude_features, only_use_features):
+	def _collect_wanted_features_from_dataframe(self, *, df, label_column_name, exclude_features, only_use_features):
 		csv_features = list(df.keys())
 		# Label raus schmeißen, weil es kein feature ist
 		csv_features.remove(label_column_name)
